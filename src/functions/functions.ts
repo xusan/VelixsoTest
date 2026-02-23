@@ -1,32 +1,39 @@
-﻿/* global Office, OfficeRuntime, Excel */
+﻿/* global Office, OfficeRuntime, CustomFunctions */
+
+// MOVE OUTSIDE: This ensures the worker (and its cache) survives between function calls
+const worker = new Worker("factorialWorker.js");
 
 /**
  * @customfunction FACTORIALROW
  * @param n The max number.
- * @helpurl https://example.com/help
  * @returns {Promise<string[][]>} A spill range [0!, 1!, ..., N!]
  */
 export async function factorialRow(n: number): Promise<string[][]> {
-  // 1. Validation (KISS)
-  if (n < 0 || n > 500) throw new Error("N must be between 0 and 500.");
+  if (n < 0 || n > 500) throw new Error("N must be 0-500.");
 
   return new Promise((resolve, reject) => {
-    // 2. Offload to Web Worker (Separation of Concerns)
-    const worker = new Worker("factorialWorker.js");
-    
-     worker.onmessage = async (event) => {
-      // FIX: Access the .data.data property because of the worker's object structure
+    // Setup the listener for this specific call
+    worker.onmessage = async (event) => {
       if (event.data.success) {
-        const sequence: string[] = event.data.data; 
-        const orientation = await OfficeRuntime.storage.getItem("orientation") || "row";
-        worker.terminate();
+        const sequence: string[] = event.data.data;
+        const orientation = (await OfficeRuntime.storage.getItem("orientation")) || "row";
+        
+        // IMPORTANT: Do NOT call worker.terminate() here, or the cache is wiped!
+        
         resolve(orientation === "row" ? [sequence] : sequence.map(v => [v]));
       } else {
         reject(event.data.error);
       }
     };
 
-    worker.onerror = (e) => reject(e);
+    worker.onerror = (err) => reject(err);
+
+    // Send the task to the background thread
     worker.postMessage(n);
   });
 }
+
+// Ensure function is registered
+Office.onReady(() => {
+  CustomFunctions.associate("FACTORIALROW", factorialRow);
+});
