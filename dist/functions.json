@@ -1,0 +1,21 @@
+{
+    "allowCustomDataForDataTypeAny": true,
+    "functions": [
+        {
+            "helpUrl": "https://example.com/help",
+            "id": "FACTORIALROW",
+            "name": "FACTORIALROW",
+            "parameters": [
+                {
+                    "description": "The max number.",
+                    "name": "n",
+                    "type": "number"
+                }
+            ],
+            "result": {
+                "dimensionality": "matrix",
+                "type": "string"
+            }
+        }
+    ]
+}

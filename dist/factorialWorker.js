@@ -1,0 +1,2 @@
+!function(){"use strict";self.onmessage=function(s){var e=s.data;try{var t=function(s){if(s<0)return[];for(var e=["1"],t=BigInt(1),r=1;r<=s;r++)t*=BigInt(r),e.push(t.toString());return e}(e);self.postMessage({success:!0,data:t})}catch(s){self.postMessage({success:!1,error:s.message})}}}();
+//# sourceMappingURL=factorialWorker.js.map
